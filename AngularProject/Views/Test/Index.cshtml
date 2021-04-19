@@ -1,0 +1,180 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <style type="text/css">
+        body {
+            font-family: Arial;
+            font-size: 10pt;
+        }
+
+        .table {
+            border: 1px solid #ccc;
+            border-collapse: collapse;
+        }
+
+            .table th {
+                background-color: #F7F7F7;
+                color: #333;
+                font-weight: bold;
+            }
+
+            .table th, .table td {
+                padding: 5px;
+                border: 1px solid #ccc;
+            }
+    </style>
+</head>
+<body>
+    <div ng-app="MyApp" ng-controller="MyController">
+        <table id="tblCustomers" class="table" cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="width:100px">Customer Id</th>
+                <th style="width:150px">Name</th>
+                <th style="width:150px">Country</th>
+                <th style="width:100px"></th>
+            </tr>
+            <tbody ng-repeat="m in Customers">
+                <tr>
+                    <td><span>{{m.CustomerId}}</span></td>
+                    <td>
+                        <span ng-hide="m.EditMode">{{m.Name}}</span>
+                        <input type="text" ng-model="m.Name" ng-show="m.EditMode" />
+                    </td>
+                    <td>
+                        <span ng-hide="m.EditMode">{{m.Country}}</span>
+                        <input type="text" ng-model="m.Country" ng-show="m.EditMode" />
+                    </td>
+                    <td>
+                        <a class="Edit" href="javascript:;" ng-hide="m.EditMode" ng-click="Edit($index)">Edit</a>
+                        <a class="Update" href="javascript:;" ng-show="m.EditMode" ng-click="Update($index)">Update</a>
+                        <a class="Cancel" href="javascript:;" ng-show="m.EditMode" ng-click="Cancel($index)">Cancel</a>
+                        <a href="javascript:;" ng-hide="m.EditMode" ng-click="Delete(m.CustomerId)">Delete</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <td style="width: 150px">
+                    Name<br />
+                    <input type="text" ng-model="Name" style="width:140px" />
+                </td>
+                <td style="width: 150px">
+                    Country:<br />
+                    <input type="text" ng-model="Country" style="width:140px" />
+                </td>
+                <td style="width: 200px">
+                    <br />
+                    <input type="button" value="Add" ng-click="Add()" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.9/angular.min.js"></script>
+    <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+    <script type="text/javascript">
+        var app = angular.module('MyApp', [])
+        app.controller('MyController', function ($scope, $http, $window) {
+            //Getting records from database.
+            var post = $http({
+                method: "POST",
+                url: "/Test/GetCustomers",
+                dataType: 'json',
+                headers: { "Content-Type": "application/json" }
+            });
+            post.success(function (data, status) {
+                //The received response is saved in Customers array.
+                $scope.Customers = data;
+            });
+
+            //Adding new record to database.
+            $scope.Add = function () {
+                if (typeof($scope.Name) == "undefined" || typeof($scope.Country) == "undefined") {
+                    return;
+                }
+                var post = $http({
+                    method: "POST",
+                    url: "/Test/InsertCustomer",
+                    data: "{name: '" + $scope.Name + "', country: '" + $scope.Country + "'}",
+                    dataType: 'json',
+                    headers: { "Content-Type": "application/json" }
+                });
+                post.success(function (data, status) {
+                    //The newly inserted record is inserted into the Customers array.
+                    $scope.Customers.push(data)
+                });
+                $scope.Name = "";
+                $scope.Country = "";
+            };
+
+            //This variable is used to store the original values.
+            $scope.EditItem = {};
+
+            //Editing an existing record.
+            $scope.Edit = function (index) {
+                //Setting EditMode to TRUE makes the TextBoxes visible for the row.
+                $scope.Customers[index].EditMode = true;
+
+                //The original values are saved in the variable to handle Cancel case.
+                $scope.EditItem.Name = $scope.Customers[index].Name;
+                $scope.EditItem.Country = $scope.Customers[index].Country;
+            };
+
+            //Cancelling an Edit.
+            $scope.Cancel = function (index) {
+                // The original values are restored back into the Customers Array.
+                $scope.Customers[index].Name = $scope.EditItem.Name;
+                $scope.Customers[index].Country = $scope.EditItem.Country;
+
+                //Setting EditMode to FALSE hides the TextBoxes for the row.
+                $scope.Customers[index].EditMode = false;
+                $scope.EditItem = {};
+            };
+
+            //Updating an existing record to database.
+            $scope.Update = function (index) {
+                var customer = $scope.Customers[index];
+                var post = $http({
+                    method: "POST",
+                    url: "/Test/UpdateCustomer",
+                    data: '{customer:' + JSON.stringify(customer) + '}',
+                    dataType: 'json',
+                    headers: { "Content-Type": "application/json" }
+                });
+                post.success(function (data, status) {
+                    //Setting EditMode to FALSE hides the TextBoxes for the row.
+                    customer.EditMode = false;
+                });
+            };
+
+            //Deleting an existing record from database.
+            $scope.Delete = function (customerId) {
+                if ($window.confirm("Do you want to delete this row?")) {
+                    var post = $http({
+                        method: "POST",
+                        url: "/Test/DeleteCustomer",
+                        data: "{customerId: " + customerId + "}",
+                        dataType: 'json',
+                        headers: { "Content-Type": "application/json" }
+                    });
+                    post.success(function (data, status) {
+                        //Remove the Deleted record from the Customers Array.
+                        $scope.Customers = $scope.Customers.filter(function (customer) {
+                            return customer.CustomerId !== customerId;
+                        });
+                    });
+                }
+            };
+        });
+    </script>
+</body>
+</html>
+

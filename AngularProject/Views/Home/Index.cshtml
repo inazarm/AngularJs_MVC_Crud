@@ -1,0 +1,93 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<style>
+
+    .tableData {
+        border-left: solid 1px #D8C3C3;
+        border-top: solid 1px #D8C3C3;
+    }
+
+
+
+        .tableData tr {
+        }
+
+
+
+        .tableData td, .tableData th {
+            border-right: solid 1px #D8C3C3;
+            border-bottom: solid 1px #D8C3C3;
+            text-align: left;
+            padding: 5px;
+        }
+
+
+
+        .tableData td {
+        }
+
+
+
+        .tableData th {
+            background-color: #FAFAFA;
+            padding: 7px 5px;
+            border-bottom-color: #9C9C9C;
+        }
+
+
+
+    .odd {
+        background-color: #f3f3f3;
+    }
+
+
+
+    .even {
+        background-color: #ffffff;
+    }
+</style>
+<div class="jumbotron">
+    <h1>ASP.NET</h1>
+    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="btn btn-primary">Show Record</div>
+    </div>
+</div>
+<div ng-app="Homeapp">
+
+    <div ng-controller="HomeController">
+
+        <table class="tableData">
+
+            <tr>
+
+                <th>Status ID</th>
+
+                <th>Status Name</th>
+
+                <th>Action</th>
+
+            </tr>
+
+            <tr ng-repeat="e in regdata" ng-class-even="'even'" ng-class-odd="'odd'">
+
+                <td>{{e.StatusID}}</td>
+
+                <td>{{e.StatusName}}</td>
+                <td>{{e.ID}}</td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script src="~/AngularController/HomeController.js"></script>
+
+</div>
